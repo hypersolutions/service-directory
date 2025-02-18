@@ -9,7 +9,7 @@
 
     <ItemGroup>
         <PackageReference Include="FastEndpoints" />
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.0"/>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
         <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" />
         <PackageReference Include="Scalar.AspNetCore" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
