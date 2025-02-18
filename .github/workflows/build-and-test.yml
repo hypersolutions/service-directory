@@ -52,7 +52,7 @@ jobs:
         if: always()
         shell: bash
         run: |-
-          if find ./tests -name "*.trx" -print -quit | grep -q .; 
+          if find ./test -name "*.trx" -print -quit | grep -q .; 
           then
             liquid --inputs "File=**/*test-results.trx" --output-file results.md --title "${{ inputs.job_name }}"
             cat results.md >> $GITHUB_STEP_SUMMARY
