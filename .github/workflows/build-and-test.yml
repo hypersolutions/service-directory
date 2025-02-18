@@ -22,10 +22,10 @@ jobs:
         with:
           ref: ${{ github.ref }}
 
-      - name: Setup .NET ${{ inputs.dotnet_version }}
+      - name: Setup .NET v9.0
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: ${{ inputs.dotnet_version }}
+          dotnet-version: v9.0
 
       - name: Install Report Tool
         shell: bash
