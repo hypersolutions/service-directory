@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" />
+        <PackageReference Include="NSubstitute" />
+        <PackageReference Include="Shouldly" />
+        <PackageReference Include="xunit" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\..\src\ServiceDirectory.Api\ServiceDirectory.Api.csproj" />
+    </ItemGroup>
+
+</Project>

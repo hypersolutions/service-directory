@@ -1,0 +1,64 @@
+﻿name: Build & Test
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    paths:
+      - '.github/workflows/build-and-test.yml'
+      - 'src/**'
+
+jobs:
+  build_and_test:
+    name: Build Project & Run Tests
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: src
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Setup .NET ${{ inputs.dotnet_version }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ inputs.dotnet_version }}
+
+      - name: Install Report Tool
+        shell: bash
+        run: dotnet tool install --global LiquidTestReports.Cli --version 2.0.0-beta.2
+
+      - name: NuGet Package Cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-NuGet-ServiceDirectory
+          restore-keys: |
+            ${{ runner.os }}-NuGet-ServiceDirectory
+
+      - name: Restore Project
+        shell: bash
+        run: dotnet restore
+
+      - name: Build Project
+        shell: bash
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Test Project
+        shell: bash
+        run: dotnet test --configuration Release --logger "trx;LogFileName=test-results.trx" --verbosity minimal --no-restore --no-build
+
+      - name: Generate Report
+        if: always()
+        shell: bash
+        run: |-
+          if find ./tests -name "*.trx" -print -quit | grep -q .; 
+          then
+            liquid --inputs "File=**/*test-results.trx" --output-file results.md --title "${{ inputs.job_name }}"
+            cat results.md >> $GITHUB_STEP_SUMMARY
+           else
+            echo "Skipping - No tests found in this project."
+           fi

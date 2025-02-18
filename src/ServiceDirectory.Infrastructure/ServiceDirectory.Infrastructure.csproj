@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <Folder Include="Database\Migrations\" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
+    <PackageReference Include="Microsoft.Extensions.Http.Polly" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceDirectory.Application\ServiceDirectory.Application.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="Database\SeedData.sql" />
+  </ItemGroup>
+</Project>
