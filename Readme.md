@@ -18,6 +18,13 @@ There are CRUD operations for organisation, service and location plus a search o
 
 The API is built using the _FastEndpoints_ package. User secrets are supported if you wish to utilise this approach.
 
+You can run the API project from your IDE or at the command line:
+
+```bash
+cd src\ServiceDirectory.Api
+dotnet run
+```
+
 This uses the Scalar.AspNetCore package as a UI instead of the traditional Swagger UI. 
 
 To load the UI add:
@@ -50,3 +57,7 @@ Things being looked at to explore:
 1. A basic UI using VUE
 2. Playwright UI tests
 3. Local OAuth server for authentication and some basic role-based permissions for management of organisations, services and locations
+
+## Useful
+
+1. GitHub for project: https://github.com/hypersolutions/service-directory
