@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using FastEndpoints;
 using ServiceDirectory.Api.Test.Support;
 using ServiceDirectory.Infrastructure.Database;
 using Shouldly;
@@ -15,6 +16,20 @@ public class DeleteServiceTests : IClassFixture<TestWebApplicationFactory<Progra
     {
         _factory = factory;
         _factory.SetSeedDataAction(SeedData);
+    }
+    
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public async Task InvalidServiceId_PostAsync_ReturnsBadRequest(int serviceId)
+    {
+        var client = _factory.CreateClient();
+        
+        var response = await client.DeleteAsync($"/api/service/{serviceId}");
+        
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        var error = await response.HttpResponseMessageAsync<ErrorResponse>();
+        error.ShouldContainError("The service Id is invalid.");
     }
     
     [Fact]

@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using FastEndpoints;
 using ServiceDirectory.Api.Test.Support;
 using ServiceDirectory.Infrastructure.Database;
 using Shouldly;
@@ -15,6 +16,20 @@ public class DeleteLocationTests : IClassFixture<TestWebApplicationFactory<Progr
     {
         _factory = factory;
         _factory.SetSeedDataAction(SeedData);
+    }
+    
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public async Task InvalidLocationId_PostAsync_ReturnsBadRequest(int locationId)
+    {
+        var client = _factory.CreateClient();
+        
+        var response = await client.DeleteAsync($"/api/location/{locationId}");
+        
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        var error = await response.HttpResponseMessageAsync<ErrorResponse>();
+        error.ShouldContainError("The location Id is invalid.");
     }
     
     [Fact]

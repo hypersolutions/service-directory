@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using FastEndpoints;
 using ServiceDirectory.Api.Dtos;
 using ServiceDirectory.Api.Endpoints.UpdateOrganisation;
 using ServiceDirectory.Api.Test.Support;
@@ -17,6 +18,79 @@ public class UpdateOrganisationTests : IClassFixture<TestWebApplicationFactory<P
     {
         _factory = factory;
         _factory.SetSeedDataAction(SeedData);
+    }
+    
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public async Task InvalidOrganisationId_PutAsync_ReturnsBadRequest(int organisationId)
+    {
+        var organisation = TestOrganisations.BristolCountyCouncil();
+        var request = new UpdateOrganisationRequest
+        {
+            Id = organisationId,
+            Name = organisation.Name,
+            Description = organisation.Description
+        };
+        var client = _factory.CreateClient();
+        var requestMessage = new HttpRequestMessage(HttpMethod.Put, "/api/organisation");
+        requestMessage.AddContent(request);
+        
+        var response = await client.SendAsync(requestMessage);
+        
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        var error = await response.HttpResponseMessageAsync<ErrorResponse>();
+        error.ShouldContainError("The organisation Id is required.");
+    }
+    
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public async Task InvalidOrganisationName_PutAsync_ReturnsBadRequest(string? organisationName)
+    {
+        var organisation = TestOrganisations.BristolCountyCouncil();
+        var organisationId = _factory.GetOrganisationId(organisation.Name);
+        var request = new UpdateOrganisationRequest
+        {
+            Id = organisationId,
+            Name = organisationName!,
+            Description = organisation.Description
+        };
+        var client = _factory.CreateClient();
+        var requestMessage = new HttpRequestMessage(HttpMethod.Put, "/api/organisation");
+        requestMessage.AddContent(request);
+        
+        var response = await client.SendAsync(requestMessage);
+        
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        var error = await response.HttpResponseMessageAsync<ErrorResponse>();
+        error.ShouldContainError("The organisation name is required.");
+    }
+    
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public async Task InvalidOrganisationDescription_PutAsync_ReturnsBadRequest(string? organisationDescription)
+    {
+        var organisation = TestOrganisations.BristolCountyCouncil();
+        var organisationId = _factory.GetOrganisationId(organisation.Name);
+        var request = new UpdateOrganisationRequest
+        {
+            Id = organisationId,
+            Name = organisation.Name,
+            Description = organisationDescription!
+        };
+        var client = _factory.CreateClient();
+        var requestMessage = new HttpRequestMessage(HttpMethod.Put, "/api/organisation");
+        requestMessage.AddContent(request);
+        
+        var response = await client.SendAsync(requestMessage);
+        
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        var error = await response.HttpResponseMessageAsync<ErrorResponse>();
+        error.ShouldContainError("The organisation description is required.");
     }
     
     [Fact]

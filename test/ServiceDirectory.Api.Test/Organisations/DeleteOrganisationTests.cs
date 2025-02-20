@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using FastEndpoints;
 using ServiceDirectory.Api.Test.Support;
 using ServiceDirectory.Infrastructure.Database;
 using Shouldly;
@@ -15,6 +16,20 @@ public class DeleteOrganisationTests : IClassFixture<TestWebApplicationFactory<P
     {
         _factory = factory;
         _factory.SetSeedDataAction(SeedData);
+    }
+    
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public async Task InvalidOrganisationId_PostAsync_ReturnsBadRequest(int organisationId)
+    {
+        var client = _factory.CreateClient();
+        
+        var response = await client.DeleteAsync($"/api/organisation/{organisationId}");
+        
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        var error = await response.HttpResponseMessageAsync<ErrorResponse>();
+        error.ShouldContainError("The organisation Id is invalid.");
     }
     
     [Fact]

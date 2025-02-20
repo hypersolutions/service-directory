@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using FastEndpoints;
 using ServiceDirectory.Api.Dtos;
 using ServiceDirectory.Api.Endpoints.UpdateService;
 using ServiceDirectory.Api.Test.Support;
@@ -17,6 +18,104 @@ public class UpdateServiceTests : IClassFixture<TestWebApplicationFactory<Progra
     {
         _factory = factory;
         _factory.SetSeedDataAction(SeedData);
+    }
+    
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public async Task InvalidServiceId_PutAsync_ReturnsBadRequest(int serviceId)
+    {
+        var service = TestServices.AAMeeting();
+        var request = new UpdateServiceRequest
+        {
+            Id = serviceId,
+            Name = service.Name,
+            Description = service.Description,
+            Cost = service.Cost
+        };
+        var client = _factory.CreateClient();
+        var requestMessage = new HttpRequestMessage(HttpMethod.Put, "/api/service");
+        requestMessage.AddContent(request);
+        
+        var response = await client.SendAsync(requestMessage);
+        
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        var error = await response.HttpResponseMessageAsync<ErrorResponse>();
+        error.ShouldContainError("The service Id is required.");
+    }
+    
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public async Task InvalidServiceName_PutAsync_ReturnsBadRequest(string? serviceName)
+    {
+        var service = TestServices.AAMeeting();
+        var request = new UpdateServiceRequest
+        {
+            Id = _factory.GetServiceId(service.Name),
+            Name = serviceName!,
+            Description = service.Description,
+            Cost = service.Cost
+        };
+        var client = _factory.CreateClient();
+        var requestMessage = new HttpRequestMessage(HttpMethod.Put, "/api/service");
+        requestMessage.AddContent(request);
+        
+        var response = await client.SendAsync(requestMessage);
+        
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        var error = await response.HttpResponseMessageAsync<ErrorResponse>();
+        error.ShouldContainError("The service name is required.");
+    }
+    
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public async Task InvalidServiceDescription_PutAsync_ReturnsBadRequest(string? serviceDescription)
+    {
+        var service = TestServices.AAMeeting();
+        var request = new UpdateServiceRequest
+        {
+            Id = _factory.GetServiceId(service.Name),
+            Name = service.Name,
+            Description = serviceDescription!,
+            Cost = service.Cost
+        };
+        var client = _factory.CreateClient();
+        var requestMessage = new HttpRequestMessage(HttpMethod.Put, "/api/service");
+        requestMessage.AddContent(request);
+        
+        var response = await client.SendAsync(requestMessage);
+        
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        var error = await response.HttpResponseMessageAsync<ErrorResponse>();
+        error.ShouldContainError("The service description is required.");
+    }
+    
+    [Theory]
+    [InlineData(-0.01)]
+    [InlineData(2000.01)]
+    public async Task InvalidServiceCost_PutAsync_ReturnsBadRequest(decimal serviceCost)
+    {
+        var service = TestServices.AAMeeting();
+        var request = new UpdateServiceRequest
+        {
+            Id = _factory.GetServiceId(service.Name),
+            Name = service.Name,
+            Description = service.Description,
+            Cost = serviceCost
+        };
+        var client = _factory.CreateClient();
+        var requestMessage = new HttpRequestMessage(HttpMethod.Put, "/api/service");
+        requestMessage.AddContent(request);
+        
+        var response = await client.SendAsync(requestMessage);
+        
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        var error = await response.HttpResponseMessageAsync<ErrorResponse>();
+        error.ShouldContainError("The service cost must be between 0 (free) and £2,000.");
     }
     
     [Fact]

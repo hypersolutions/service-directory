@@ -7,7 +7,7 @@ public sealed class UpdateOrganisationRequestValidator : Validator<UpdateOrganis
 {
     public UpdateOrganisationRequestValidator()
     {
-        RuleFor(p => p.Id).GreaterThan(0).WithMessage("The organisation Id is invalid.");
+        RuleFor(p => p.Id).GreaterThan(0).WithMessage("The organisation Id is required.");
         RuleFor(p => p.Name).NotEmpty().WithMessage("The organisation name is required.");
         RuleFor(p => p.Description).NotEmpty().WithMessage("The organisation description is required.");
     }
