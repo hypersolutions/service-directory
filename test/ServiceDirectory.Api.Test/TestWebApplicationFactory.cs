@@ -1,8 +1,11 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using System.Net.Http.Headers;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using ServiceDirectory.Api.Test.Support;
 using ServiceDirectory.Infrastructure.Database;
+
 // ReSharper disable ClassNeverInstantiated.Global
 
 namespace ServiceDirectory.Api.Test;
@@ -10,19 +13,30 @@ namespace ServiceDirectory.Api.Test;
 public class TestWebApplicationFactory<TProgram> : WebApplicationFactory<TProgram> where TProgram : class
 {
     private Action<ApplicationDbContext> _seedAction = _ => { };
+    private string _role = "admin";
+    private const string BearerSigningKey = "8ca984ec355e470cad63b468bbca73c5";
     
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.ConfigureServices(services =>
-        {
-            SetConfiguration(services);
-            InitialiseDatabase(services);
-        });
+        builder.ConfigureAppConfiguration(SetConfiguration);
+        builder.ConfigureServices(InitialiseDatabase);
+    }
+    
+    protected override void ConfigureClient(HttpClient client)
+    {
+        var token = BearerTokenGenerator.CreateTestToken(BearerSigningKey, _role);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        base.ConfigureClient(client);
     }
     
     public void SetSeedDataAction(Action<ApplicationDbContext> action)
     {
         _seedAction = action;
+    }
+
+    public void SetRole(string role)
+    {
+        _role = role;
     }
     
     public int GetOrganisationId(string name)
@@ -62,10 +76,13 @@ public class TestWebApplicationFactory<TProgram> : WebApplicationFactory<TProgra
         context.SaveChanges();
     }
     
-    private static void SetConfiguration(IServiceCollection services)
+    private static void SetConfiguration(IConfigurationBuilder builder)
     {
-        var settings = new Dictionary<string, string?> { {"DatabaseConnection", "Data Source=sd.test.db"} };
-        var configuration = new ConfigurationBuilder().AddInMemoryCollection(settings).Build();
-        services.AddSingleton<IConfiguration>(configuration);
+        var settings = new Dictionary<string, string?>
+        {
+            { "DatabaseConnection", "Data Source=sd.test.db" },
+            { "BearerSigningKey", BearerSigningKey }
+        };
+        builder.AddInMemoryCollection(settings);
     }
 }

@@ -35,6 +35,10 @@ To load the UI add:
 
 The _launchSettings.json_ will launch this page by default.
 
+The API is secured with JWT so you will need to generate a bearer token. There is a console app for this called _BearerTokenGenerator_ 
+in the _util_ folder. This requires the same signing key as used in the API. It produces a token for 60 mins with a single claim _role_
+with a value of _admin_. This is then enforced by a _policy_ by the API.
+
 There are both unit and integration (API) tests to provide a solid level of coverage.
 
 ### Search

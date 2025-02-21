@@ -18,7 +18,7 @@ public class CreateServiceEndpoint : EndpointBase<CreateServiceRequest, ServiceD
     public override void Configure()
     {
         Post("/api/service");
-        AllowAnonymous();
+        SetAdminPolicy();
         PreProcessor<RequestLoggerPreProcessor<CreateServiceRequest>>();
     }
 

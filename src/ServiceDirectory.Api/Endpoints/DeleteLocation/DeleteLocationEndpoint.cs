@@ -17,7 +17,7 @@ public class DeleteLocationEndpoint : EndpointBase<DeleteLocationRequest>
     public override void Configure()
     {
         Delete("/api/location/{Id}");
-        AllowAnonymous();
+        SetAdminPolicy();
         PreProcessor<RequestLoggerPreProcessor<DeleteLocationRequest>>();
     }
 

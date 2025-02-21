@@ -18,7 +18,7 @@ public class CreateLocationEndpoint : EndpointBase<CreateLocationRequest, Locati
     public override void Configure()
     {
         Post("/api/location");
-        AllowAnonymous();
+        SetAdminPolicy();
         PreProcessor<RequestLoggerPreProcessor<CreateLocationRequest>>();
     }
 

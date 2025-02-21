@@ -17,7 +17,7 @@ public class DeleteOrganisationEndpoint : EndpointBase<DeleteOrganisationRequest
     public override void Configure()
     {
         Delete("/api/organisation/{Id}");
-        AllowAnonymous();
+        SetAdminPolicy();
         PreProcessor<RequestLoggerPreProcessor<DeleteOrganisationRequest>>();
     }
 

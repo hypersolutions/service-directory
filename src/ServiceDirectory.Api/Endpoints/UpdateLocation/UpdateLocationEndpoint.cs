@@ -18,7 +18,7 @@ public class UpdateLocationEndpoint : EndpointBase<UpdateLocationRequest, Locati
     public override void Configure()
     {
         Put("/api/location");
-        AllowAnonymous();
+        SetAdminPolicy();
         PreProcessor<RequestLoggerPreProcessor<UpdateLocationRequest>>();
     }
 

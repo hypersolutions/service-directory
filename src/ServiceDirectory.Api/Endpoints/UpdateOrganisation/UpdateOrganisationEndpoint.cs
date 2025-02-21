@@ -18,7 +18,7 @@ public class UpdateOrganisationEndpoint : EndpointBase<UpdateOrganisationRequest
     public override void Configure()
     {
         Put("/api/organisation");
-        AllowAnonymous();
+        SetAdminPolicy();
         PreProcessor<RequestLoggerPreProcessor<UpdateOrganisationRequest>>();
     }
 

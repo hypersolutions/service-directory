@@ -17,7 +17,7 @@ public class DeleteServiceEndpoint : EndpointBase<DeleteServiceRequest>
     public override void Configure()
     {
         Delete("/api/service/{Id}");
-        AllowAnonymous();
+        SetAdminPolicy();
         PreProcessor<RequestLoggerPreProcessor<DeleteServiceRequest>>();
     }
 

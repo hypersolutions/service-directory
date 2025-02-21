@@ -19,7 +19,7 @@ public class GetOrganisationEndpoint : EndpointBase<GetOrganisationRequest, Orga
     public override void Configure()
     {
         Get("/api/organisation/{Id}");
-        AllowAnonymous();
+        SetAdminPolicy();
         PreProcessor<RequestLoggerPreProcessor<GetOrganisationRequest>>();
     }
 

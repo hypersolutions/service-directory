@@ -18,7 +18,7 @@ public class UpdateServiceEndpoint : EndpointBase<UpdateServiceRequest, ServiceD
     public override void Configure()
     {
         Put("/api/service");
-        AllowAnonymous();
+        SetAdminPolicy();
         PreProcessor<RequestLoggerPreProcessor<UpdateServiceRequest>>();
     }
 

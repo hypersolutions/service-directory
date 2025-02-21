@@ -1,4 +1,3 @@
-using FastEndpoints;
 using ServiceDirectory.Api.Extensions;
 using ServiceDirectory.Application.Extensions;
 using ServiceDirectory.Infrastructure.Extensions;
@@ -7,13 +6,13 @@ using ServiceDirectory.Infrastructure.Extensions;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplication();
-builder.Services.AddFastEndpoints();
-builder.Services.AddOpenApi();
+builder.Services.AddApiFastEndpoints(builder.Configuration);
+builder.Services.AddSecureOpenApi();
 
 var app = builder.Build();
 app.MapOpenApiUi();
 app.UseHttpsRedirection();
-app.UseFastEndpoints();
+app.UseApiFastEndpoints();
 app.MapGet("/", () => Results.Redirect("/scalar"));
 app.Run();
 

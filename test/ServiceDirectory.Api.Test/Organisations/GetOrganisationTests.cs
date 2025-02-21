@@ -31,9 +31,10 @@ public class GetOrganisationTests : IClassFixture<TestWebApplicationFactory<Prog
     [Fact]
     public async Task KnownOrganisation_GetAsync_ReturnsOrganisationDetails()
     {
+        var organisationId = _factory.GetOrganisationId("Bristol County Council");
         var client = _factory.CreateClient();
         
-        var response = await client.GetAsync("/api/organisation/1");
+        var response = await client.GetAsync($"/api/organisation/{organisationId}");
         
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         var dto = await response.HttpResponseMessageAsync<OrganisationDto>();

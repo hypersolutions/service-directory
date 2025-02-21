@@ -20,6 +20,11 @@ public abstract class EndpointBase : EndpointWithoutRequest
                 return SendErrorsAsync(cancellation: cancellationToken);
         }
     }
+
+    protected void SetAdminPolicy()
+    {
+        Policies("Admin");
+    }
 }
 
 public abstract class EndpointBase<TRequest> : Endpoint<TRequest> where TRequest : notnull
@@ -37,6 +42,11 @@ public abstract class EndpointBase<TRequest> : Endpoint<TRequest> where TRequest
                 ValidationFailures.Add(new ValidationFailure("HandlerError", error.Description));
                 return SendErrorsAsync(cancellation: cancellationToken);
         }
+    }
+    
+    protected void SetAdminPolicy()
+    {
+        Policies("Admin");
     }
 }
 
@@ -60,5 +70,10 @@ public abstract class EndpointBase<TRequest, TResponse> : Endpoint<TRequest, TRe
     protected Task SendCreatedAsync(TResponse response, CancellationToken cancellationToken)
     {
         return SendAsync(response, StatusCodes.Status201Created, cancellationToken);
+    }
+    
+    protected void SetAdminPolicy()
+    {
+        Policies("Admin");
     }
 }

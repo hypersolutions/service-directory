@@ -18,7 +18,7 @@ public class CreateOrganisationEndpoint : EndpointBase<CreateOrganisationRequest
     public override void Configure()
     {
         Post("/api/organisation");
-        AllowAnonymous();
+        SetAdminPolicy();
         PreProcessor<RequestLoggerPreProcessor<CreateOrganisationRequest>>();
     }
 
