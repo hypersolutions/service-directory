@@ -16,6 +16,8 @@ public class CreateOrganisationTests : IClassFixture<TestWebApplicationFactory<P
     public CreateOrganisationTests(TestWebApplicationFactory<Program> factory)
     {
         _factory = factory;
+        _factory.SetRole(Roles.Admin);
+        _factory.SetPostcodeLookup(HttpStatusCode.OK, TestLocations.BristolCountyCouncil());
     }
     
     [Theory]

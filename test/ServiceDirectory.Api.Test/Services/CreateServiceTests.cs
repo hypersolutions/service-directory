@@ -18,6 +18,8 @@ public class CreateServiceTests : IClassFixture<TestWebApplicationFactory<Progra
     {
         _factory = factory;
         _factory.SetSeedDataAction(SeedData);
+        _factory.SetRole(Roles.Admin);
+        _factory.SetPostcodeLookup(HttpStatusCode.OK, TestLocations.AAMeeting());
     }
     
     [Theory]

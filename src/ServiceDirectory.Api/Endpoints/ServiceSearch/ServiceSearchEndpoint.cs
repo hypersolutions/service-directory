@@ -18,7 +18,7 @@ public class ServiceSearchEndpoint : EndpointBase<ServiceSearchRequest, IEnumera
     public override void Configure()
     {
         Get("/api/service/search");
-        SetAdminPolicy();
+        AllowAnonymous();
         PreProcessor<RequestLoggerPreProcessor<ServiceSearchRequest>>();
     }
 

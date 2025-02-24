@@ -19,7 +19,7 @@ public class GetLocationEndpoint : EndpointBase<GetLocationRequest, LocationDto>
     public override void Configure()
     {
         Get("/api/location/{Id}");
-        SetAdminPolicy();
+        AllowAnonymous();
         PreProcessor<RequestLoggerPreProcessor<GetLocationRequest>>();
     }
 

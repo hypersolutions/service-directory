@@ -18,7 +18,7 @@ public class GetOrganisationsEndpoint : EndpointBase
     public override void Configure()
     {
         Get("/api/organisation");
-        SetAdminPolicy();
+        AllowAnonymous();
     }
 
     public override async Task HandleAsync(CancellationToken cancellationToken)

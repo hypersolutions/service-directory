@@ -18,6 +18,7 @@ public class UpdateServiceTests : IClassFixture<TestWebApplicationFactory<Progra
     {
         _factory = factory;
         _factory.SetSeedDataAction(SeedData);
+        _factory.SetRole(Roles.Admin);
     }
     
     [Theory]

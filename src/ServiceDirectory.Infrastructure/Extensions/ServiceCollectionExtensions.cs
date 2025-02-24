@@ -29,7 +29,7 @@ public static class ServiceCollectionExtensions
     {
         services.AddDbContext<ApplicationDbContext>(o =>
         {
-            var connectionString = configuration["DatabaseConnection"] ?? throw new ArgumentException("Unable to find the database connection.");;
+            var connectionString = configuration["DatabaseConnection"] ?? throw new ArgumentException("Unable to find the database connection.");
             o.UseSqlite(connectionString, b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.ToString()));
             o.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
         });

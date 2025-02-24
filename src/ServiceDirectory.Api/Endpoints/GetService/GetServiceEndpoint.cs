@@ -19,7 +19,7 @@ public class GetServiceEndpoint : EndpointBase<GetServiceRequest, ServiceDto>
     public override void Configure()
     {
         Get("/api/service/{Id}");
-        SetAdminPolicy();
+        AllowAnonymous();
         PreProcessor<RequestLoggerPreProcessor<GetServiceRequest>>();
     }
 

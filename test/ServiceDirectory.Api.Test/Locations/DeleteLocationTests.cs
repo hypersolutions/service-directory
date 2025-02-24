@@ -16,6 +16,7 @@ public class DeleteLocationTests : IClassFixture<TestWebApplicationFactory<Progr
     {
         _factory = factory;
         _factory.SetSeedDataAction(SeedData);
+        _factory.SetRole(Roles.Admin);
     }
     
     [Theory]

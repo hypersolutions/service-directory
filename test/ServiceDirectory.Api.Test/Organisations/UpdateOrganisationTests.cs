@@ -18,6 +18,7 @@ public class UpdateOrganisationTests : IClassFixture<TestWebApplicationFactory<P
     {
         _factory = factory;
         _factory.SetSeedDataAction(SeedData);
+        _factory.SetRole(Roles.Admin);
     }
     
     [Theory]

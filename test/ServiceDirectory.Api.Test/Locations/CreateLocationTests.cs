@@ -18,6 +18,9 @@ public class CreateLocationTests : IClassFixture<TestWebApplicationFactory<Progr
     {
         _factory = factory;
         _factory.SetSeedDataAction(SeedData);
+        _factory.SetRole(Roles.Admin);
+        _factory.SetPostcodeLookup(HttpStatusCode.OK, TestLocations.AAMeeting());
+        _factory.SetPostcodeLookup(HttpStatusCode.OK, TestLocations.EastSussexCountyCouncil());
     }
     
     [Theory]
