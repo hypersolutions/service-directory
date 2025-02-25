@@ -25,3 +25,8 @@ bld/
 msbuild.log
 msbuild.err
 msbuild.wrn
+
+# Db
+*.db
+*.db-shm
+*.db-wal

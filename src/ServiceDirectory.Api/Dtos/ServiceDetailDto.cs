@@ -26,7 +26,7 @@ public sealed class ServiceDetailDto
             Name = serviceDetail.Name,
             Description = serviceDetail.Description,
             Cost = serviceDetail.Cost,
-            HowFarAway = serviceDetail.HowFarAway,
+            HowFarAway = Math.Round(serviceDetail.HowFarAway, 1),
             AddressLine1 = serviceDetail.AddressLine1,
             AddressLine2 = serviceDetail.AddressLine2,
             TownOrCity = serviceDetail.TownOrCity,

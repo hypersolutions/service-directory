@@ -1,4 +1,5 @@
-﻿using ServiceDirectory.Application.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using ServiceDirectory.Application.Data;
 using ServiceDirectory.Application.Shared;
 using ServiceDirectory.Domain;
 
@@ -15,7 +16,7 @@ public sealed class GetServicesQueryHandler : IHandler<NoopQuery, Result<IEnumer
     
     public async Task<Result<IEnumerable<Service>>> HandleAsync(NoopQuery request, CancellationToken cancellationToken)
     {
-        var services = _repository.Organisations.SelectMany(o => o.Services).ToList();
+        var services = _repository.Organisations.SelectMany(o => o.Services).Include(s => s.Locations).ToList();
         return await Task.FromResult<Result<IEnumerable<Service>>>(services);
     }
 }
