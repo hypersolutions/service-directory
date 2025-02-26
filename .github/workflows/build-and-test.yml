@@ -61,7 +61,7 @@ jobs:
            fi
           
       - name: Install Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
           node-version: 23.8.0
         
@@ -70,3 +70,5 @@ jobs:
         
       - name: Build UI
         run: npm run build
+        with:
+          workingDir: ui
