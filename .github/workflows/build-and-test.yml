@@ -59,3 +59,14 @@ jobs:
            else
             echo "Skipping - No tests found in this project."
            fi
+          
+      - name: Install Node.js
+        uses: actions/setup-node@4
+        with:
+          node-version: 23.8.0
+        
+      - name: Install UI Package Dependencies
+        run: npm install
+        
+      - name: Build UI
+        run: npm run build
