@@ -19,6 +19,7 @@
 <script setup>
 defineProps('searching', {default: true});
 const emit = defineEmits(['onSearch']);
+const searching = defineModel('searching', {default: false});
 const isFormValid = defineModel('isFormValid', {default: false});
 const postcode = defineModel('postcode', {default: ''});
 const distance = defineModel('distance', {default: 10});

@@ -1,6 +1,6 @@
 ﻿# Quick Start
 
-The instructions below will get the API and UI running.
+The instructions below will get the API and UI running. The .net code uses .net 9 so you will need to install the SDK. See [.NET9 Downloads](https://dotnet.microsoft.com/en-us/download/dotnet/9.0) for more details.
 
 ## API
 
