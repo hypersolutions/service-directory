@@ -61,7 +61,7 @@ jobs:
            fi
           
       - name: Install Node.js
-        uses: actions/setup-node@4
+        uses: actions/setup-node@2
         with:
           node-version: 23.8.0
         
