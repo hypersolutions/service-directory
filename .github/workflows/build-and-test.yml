@@ -50,7 +50,9 @@ jobs:
           node-version: 23.8.0
         
       - name: Install UI Package Dependencies
-        run: npm install
+        run: |
+          cd ui
+          npm install
         
       - name: Build UI
         run: |
