@@ -24,10 +24,6 @@ jobs:
         with:
           dotnet-version: 9.0.x
 
-      - name: Install Report Tool
-        shell: bash
-        run: dotnet tool install --global LiquidTestReports.Cli --version 2.0.0-beta.2
-
       - name: NuGet Package Cache
         uses: actions/cache@v4
         with:
@@ -48,18 +44,6 @@ jobs:
         shell: bash
         run: dotnet test --configuration Release --logger "trx;LogFileName=test-results.trx" --verbosity minimal --no-restore --no-build
 
-      - name: Generate Report
-        if: always()
-        shell: bash
-        run: |-
-          if find ./test -name "*.trx" -print -quit | grep -q .; 
-          then
-            liquid --inputs "File=**/*test-results.trx" --output-file results.md --title "${{ inputs.job_name }}"
-            cat results.md >> $GITHUB_STEP_SUMMARY
-           else
-            echo "Skipping - No tests found in this project."
-           fi
-          
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
@@ -69,6 +53,6 @@ jobs:
         run: npm install
         
       - name: Build UI
-        run: npm run build
-        with:
-          workingDir: ui
+        run: |
+          cd ui
+          npm run build
