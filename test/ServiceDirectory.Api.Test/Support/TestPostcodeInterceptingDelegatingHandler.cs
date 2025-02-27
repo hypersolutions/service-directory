@@ -1,8 +1,8 @@
-﻿using System.Net.Mime;
+﻿using System.Net;
+using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
 using System.Web;
-using Shouldly;
 
 namespace ServiceDirectory.Api.Test.Support;
 
@@ -19,7 +19,9 @@ public sealed class TestPostcodeInterceptingDelegatingHandler : DelegatingHandle
     {
         var postcodeLookup = _testPostcodeLooks.FirstOrDefault(
             pl => request.RequestUri?.AbsoluteUri.EndsWith(HttpUtility.UrlPathEncode(pl.Postcode)) == true);
-        postcodeLookup.ShouldNotBeNull();
+
+        if (postcodeLookup is null)
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotFound));
         
         var response = new HttpResponseMessage(postcodeLookup.StatusCode);
 
