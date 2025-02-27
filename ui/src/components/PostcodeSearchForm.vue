@@ -1,8 +1,8 @@
 ﻿<template>
   <v-form v-model="isFormValid">
-    <v-text-field label="Postcode" v-model="postcode" :rules="[rules.postcode]" clearable>
+    <v-text-field label="Postcode" v-model="postcode" :rules="[rules.postcode]" testid="postcode-field" clearable>
       <template v-slot:append>
-        <v-btn @click="searchClick" x-large color="orange" :loading="searching" :disabled="!isFormValid">Search</v-btn>
+        <v-btn @click="searchClick" x-large color="orange" :loading="searching" :disabled="!isFormValid" testid="search-button">Search</v-btn>
       </template>
     </v-text-field>
     <v-slider v-model="distance" color="orange" :min="1" :max="30" :step="1">

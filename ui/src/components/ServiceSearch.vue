@@ -3,7 +3,7 @@
     <v-row>
       <v-col cols="12">
         <v-text>
-          <p class="text-h5 pa-5">
+          <p class="text-h5 pa-5" testid="description">
             Use the search tools below to find services within a certain distance of the entered postcode. These will be ordered from the closest to furthest.
           </p>
         </v-text>
