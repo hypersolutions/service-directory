@@ -58,8 +58,8 @@ This supports _github_ actions which trigger on main changes. This will build th
 Things being looked at to explore:
 
 1. Update the UI to provide management of organisations, services and locations
-2. Playwright UI tests
-3. Local OAuth server for authentication and some basic role-based permissions for management of organisations, services and locations
+2. Extend existing Playwright UI tests
+3. Local Auth server for authentication and some basic role-based permissions for management of organisations, services and locations
 
 ## Useful
 

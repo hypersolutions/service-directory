@@ -42,7 +42,7 @@ jobs:
 
       - name: Test Project
         shell: bash
-        run: dotnet test --configuration Release --logger "trx;LogFileName=test-results.trx" --verbosity minimal --no-restore --no-build
+        run: dotnet test --configuration Release --filter Category!=E2E --logger "trx;LogFileName=test-results.trx" --verbosity minimal --no-restore --no-build
           
   build_ui:
     name: Build UI

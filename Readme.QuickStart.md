@@ -22,8 +22,12 @@ Use your IDE of choice with the following settings:
 Check that all the tests run. You can use your IDE of choice or run the following command from the root:
 
 ```bash
-dotnet test
+dotnet test --filter Category!=E2E
 ```
+
+**Note** that the Playwright tests are marked with the _XUnit trait_ Category = E2E so you will want to group by category within your IDE.
+
+If you want to run the E2E tests, make sure that both the API (above) and UI (below) are running first.
 
 Run the _API_ via your IDE or the following command:
 
@@ -83,3 +87,17 @@ The home page has a search. Enter a postcode. Suggested ones are:
 - **Bristol** BS1 5TR
 
 Consult the migration seed data or find other postcodes based upon the regions Bristol and Southampton - which has service data.
+
+Now you have the API and UI running, you should be able to run the E2E tests via your IDE or the command line:
+
+```bash
+dotnet test --filter Category=E2E
+```
+
+Also there is a _.runsettings_ file which allows you to add some config such as running headed:
+
+```bash
+dotnet test --filter Category=E2E --settings:./test/ServiceDirectory.Ui.Test/.runsettings
+```
+
+**Note** that the UI has an added delay of a couple of seconds when loading data from the API for simulation purposes.
