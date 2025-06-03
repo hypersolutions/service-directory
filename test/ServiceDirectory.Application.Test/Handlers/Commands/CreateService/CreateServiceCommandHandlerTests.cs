@@ -1,4 +1,5 @@
-﻿using NSubstitute;
+﻿using RockHopper;
+using RockHopper.Mocking;
 using ServiceDirectory.Application.Clients;
 using ServiceDirectory.Application.Data;
 using ServiceDirectory.Application.Handlers.Commands.CreateService;
@@ -12,31 +13,35 @@ using Xunit;
 
 namespace ServiceDirectory.Application.Test.Handlers.Commands.CreateService;
 
-public class CreateServiceCommandHandlerTests : TestBase<CreateServiceCommandHandler>
+public class CreateServiceCommandHandlerTests
 {
-    private readonly IApplicationRepository _repository;
+    private readonly CreateServiceCommandHandler _handler;
+    private readonly Mock<IApplicationRepository> _repository;
     private readonly Organisation _towerHamlets;
     private readonly Service _discoveryHomeService;
     private readonly Location _discoveryHomeLocation;
-    private readonly IPostcodeClient _postcodeClient;
+    private readonly Mock<IPostcodeClient> _postcodeClient;
     
     public CreateServiceCommandHandlerTests()
     {
+        _handler = TestSubject.Create<CreateServiceCommandHandler>();
         _towerHamlets = TestOrganisations.TowerHamlets();
         _discoveryHomeService = TestServices.DiscoveryHome();
         _discoveryHomeLocation = TestLocations.DiscoveryHome();
-        _repository = MockFor<IApplicationRepository>();
-        _repository.Organisations.Returns(new List<Organisation>([_towerHamlets]).AsTestQueryable());
-        _postcodeClient = MockFor<IPostcodeClient>();
+        _repository = _handler.GetMock<IApplicationRepository>();
+        _repository.GetProperty(r => r.Organisations).Returns(new List<Organisation>([_towerHamlets]).AsTestQueryable());
+        _postcodeClient = _handler.GetMock<IPostcodeClient>();
     }
     
     [Fact]
     public async Task NoPostcodeFound_HandleAsync_ReturnsError()
     {
         var command = GetCreateServiceCommand(_towerHamlets.Id, 10.00M);
-        _postcodeClient.ResolvePostcodeLocationAsync(command.Postcode, CancellationToken.None).Returns(new Error("Postcode not found.", ErrorType.NotFound));
+        _postcodeClient
+            .Function(c => c.ResolvePostcodeLocationAsync(command.Postcode, CancellationToken.None))
+            .Returns((Result<Coordinate>)new Error("Postcode not found.", ErrorType.NotFound));
         
-        var result = await Subject.HandleAsync(command, CancellationToken.None);
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         await result.ShouldBeErrorMatchAsync(e => e is { Description: "Postcode not found.", Type: ErrorType.NotFound });
     }
@@ -45,9 +50,11 @@ public class CreateServiceCommandHandlerTests : TestBase<CreateServiceCommandHan
     public async Task UnknownOrganisation_HandleAsync_ThrowsException()
     {
         var command = GetCreateServiceCommand(2, _discoveryHomeService.Cost);
-        _postcodeClient.ResolvePostcodeLocationAsync(command.Postcode, CancellationToken.None).Returns(new Coordinate(_discoveryHomeLocation.Latitude, _discoveryHomeLocation.Longitude));
+        _postcodeClient
+            .Function(c => c.ResolvePostcodeLocationAsync(command.Postcode, CancellationToken.None))
+            .Returns((Result<Coordinate>)new Coordinate(_discoveryHomeLocation.Latitude, _discoveryHomeLocation.Longitude));
 
-        var result = await Subject.HandleAsync(command, CancellationToken.None);
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
         
         await result.ShouldBeErrorMatchAsync(
             e => e is { Description: "Unable to find the organisation for 2.", Type: ErrorType.NotFound });
@@ -59,9 +66,11 @@ public class CreateServiceCommandHandlerTests : TestBase<CreateServiceCommandHan
     public async Task InvalidCost_HandleAsync_ThrowsException(decimal cost)
     {
         var command = GetCreateServiceCommand(_towerHamlets.Id, cost);
-        _postcodeClient.ResolvePostcodeLocationAsync(command.Postcode, CancellationToken.None).Returns(new Coordinate(_discoveryHomeLocation.Latitude, _discoveryHomeLocation.Longitude));
+        _postcodeClient
+            .Function(c => c.ResolvePostcodeLocationAsync(command.Postcode, CancellationToken.None))
+            .Returns((Result<Coordinate>)new Coordinate(_discoveryHomeLocation.Latitude, _discoveryHomeLocation.Longitude));
 
-        var result = await Subject.HandleAsync(command, CancellationToken.None);
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
         
         await result.ShouldBeErrorMatchAsync(
             e => e.Description == $"Unable to create a cost for {cost}." && e.Type == ErrorType.Unexpected);
@@ -71,9 +80,12 @@ public class CreateServiceCommandHandlerTests : TestBase<CreateServiceCommandHan
     public async Task ValidService_HandleAsync_AddsServiceToOrganisation()
     {
         var command = GetCreateServiceCommand(_towerHamlets.Id, _discoveryHomeService.Cost);
-        _postcodeClient.ResolvePostcodeLocationAsync(command.Postcode, CancellationToken.None).Returns(new Coordinate(_discoveryHomeLocation.Latitude, _discoveryHomeLocation.Longitude));
-
-        await Subject.HandleAsync(command, CancellationToken.None);
+        _postcodeClient
+            .Function(c => c.ResolvePostcodeLocationAsync(command.Postcode, CancellationToken.None))
+            .Returns((Result<Coordinate>)new Coordinate(_discoveryHomeLocation.Latitude, _discoveryHomeLocation.Longitude));
+        _repository.Function(r => r.SaveChangesAsync(CancellationToken.None)).Returns(Task.CompletedTask);
+        
+        await _handler.HandleAsync(command, CancellationToken.None);
         
         _towerHamlets.Services.ShouldContain(s => s.Name == _discoveryHomeService.Name);
     }
@@ -82,9 +94,12 @@ public class CreateServiceCommandHandlerTests : TestBase<CreateServiceCommandHan
     public async Task ValidService_HandleAsync_AddsLocationToService()
     {
         var command = GetCreateServiceCommand(_towerHamlets.Id, _discoveryHomeService.Cost);
-        _postcodeClient.ResolvePostcodeLocationAsync(command.Postcode, CancellationToken.None).Returns(new Coordinate(_discoveryHomeLocation.Latitude, _discoveryHomeLocation.Longitude));
-
-        var result = await Subject.HandleAsync(command, CancellationToken.None);
+        _postcodeClient
+            .Function(c => c.ResolvePostcodeLocationAsync(command.Postcode, CancellationToken.None))
+            .Returns((Result<Coordinate>)new Coordinate(_discoveryHomeLocation.Latitude, _discoveryHomeLocation.Longitude));
+        _repository.Function(r => r.SaveChangesAsync(CancellationToken.None)).Returns(Task.CompletedTask);
+        
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         await result.ShouldBeSuccessMatchAsync(
             s => s.Locations.FirstOrDefault(l => l.AddressLine1 == _discoveryHomeLocation.AddressLine1) != null);
@@ -94,11 +109,14 @@ public class CreateServiceCommandHandlerTests : TestBase<CreateServiceCommandHan
     public async Task ValidService_HandleAsync_SavesRepositoryChanges()
     {
         var command = GetCreateServiceCommand(_towerHamlets.Id, _discoveryHomeService.Cost);
-        _postcodeClient.ResolvePostcodeLocationAsync(command.Postcode, CancellationToken.None).Returns(new Coordinate(_discoveryHomeLocation.Latitude, _discoveryHomeLocation.Longitude));
-
-        await Subject.HandleAsync(command, CancellationToken.None);
+        _postcodeClient
+            .Function(c => c.ResolvePostcodeLocationAsync(command.Postcode, CancellationToken.None))
+            .Returns((Result<Coordinate>)new Coordinate(_discoveryHomeLocation.Latitude, _discoveryHomeLocation.Longitude));
+        _repository.Function(r => r.SaveChangesAsync(CancellationToken.None)).Returns(Task.CompletedTask);
         
-        await _repository.Received().SaveChangesAsync(CancellationToken.None);
+        await _handler.HandleAsync(command, CancellationToken.None);
+        
+        _handler.VerifyAll();
     }
     
     private CreateServiceCommand GetCreateServiceCommand(int orgId, decimal cost) => new(

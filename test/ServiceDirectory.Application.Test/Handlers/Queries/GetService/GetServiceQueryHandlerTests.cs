@@ -1,4 +1,4 @@
-﻿using NSubstitute;
+﻿using RockHopper;
 using ServiceDirectory.Application.Data;
 using ServiceDirectory.Application.Handlers.Queries.GetService;
 using ServiceDirectory.Application.Shared;
@@ -9,15 +9,17 @@ using Xunit;
 
 namespace ServiceDirectory.Application.Test.Handlers.Queries.GetService;
 
-public class GetServiceQueryHandlerTests : TestBase<GetServiceQueryHandler>
+public class GetServiceQueryHandlerTests
 {
+    private readonly GetServiceQueryHandler _handler;
     private readonly Service _discoveryHome;
     
     public GetServiceQueryHandlerTests()
     {
+        _handler = TestSubject.Create<GetServiceQueryHandler>();
         _discoveryHome = TestServices.DiscoveryHome();
-        var repository = MockFor<IApplicationRepository>();
-        repository.Services.Returns(new List<Service>([_discoveryHome]).AsTestQueryable());
+        var repository = _handler.GetMock<IApplicationRepository>();
+        repository.GetProperty(r => r.Services).Returns(new List<Service>([_discoveryHome]).AsTestQueryable());
     }
     
     [Fact]
@@ -25,7 +27,7 @@ public class GetServiceQueryHandlerTests : TestBase<GetServiceQueryHandler>
     {
         var query = new GetServiceQuery(100);
         
-        var result = await Subject.HandleAsync(query, CancellationToken.None);
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
 
         await result.ShouldBeErrorMatchAsync(
             e => e is { Description: "Unable to find the service for 100.", Type: ErrorType.NotFound });
@@ -36,7 +38,7 @@ public class GetServiceQueryHandlerTests : TestBase<GetServiceQueryHandler>
     {
         var query = new GetServiceQuery(_discoveryHome.Id);
         
-        var result = await Subject.HandleAsync(query, CancellationToken.None);
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
 
         await result.ShouldBeSuccessMatchAsync(o => o.Id == _discoveryHome.Id);
     }

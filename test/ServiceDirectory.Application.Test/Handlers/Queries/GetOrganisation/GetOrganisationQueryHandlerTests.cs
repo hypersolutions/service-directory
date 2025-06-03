@@ -1,4 +1,4 @@
-﻿using NSubstitute;
+﻿using RockHopper;
 using ServiceDirectory.Application.Data;
 using ServiceDirectory.Application.Handlers.Queries.GetOrganisation;
 using ServiceDirectory.Application.Shared;
@@ -9,15 +9,17 @@ using Xunit;
 
 namespace ServiceDirectory.Application.Test.Handlers.Queries.GetOrganisation;
 
-public class GetOrganisationQueryHandlerTests : TestBase<GetOrganisationQueryHandler>
+public class GetOrganisationQueryHandlerTests
 {
+    private readonly GetOrganisationQueryHandler _handler;
     private readonly Organisation _towerHamlets;
     
     public GetOrganisationQueryHandlerTests()
     {
+        _handler = TestSubject.Create<GetOrganisationQueryHandler>();
         _towerHamlets = TestOrganisations.TowerHamlets();
-        var repository = MockFor<IApplicationRepository>();
-        repository.Organisations.Returns(new List<Organisation>([_towerHamlets]).AsTestQueryable());
+        var repository = _handler.GetMock<IApplicationRepository>();
+        repository.GetProperty(r => r.Organisations).Returns(new List<Organisation>([_towerHamlets]).AsTestQueryable());
     }
     
     [Fact]
@@ -25,7 +27,7 @@ public class GetOrganisationQueryHandlerTests : TestBase<GetOrganisationQueryHan
     {
         var query = new GetOrganisationQuery(100);
         
-        var result = await Subject.HandleAsync(query, CancellationToken.None);
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
 
         await result.ShouldBeErrorMatchAsync(
             e => e is { Description: "Unable to find the organisation for 100.", Type: ErrorType.NotFound });
@@ -36,7 +38,7 @@ public class GetOrganisationQueryHandlerTests : TestBase<GetOrganisationQueryHan
     {
         var query = new GetOrganisationQuery(_towerHamlets.Id);
         
-        var result = await Subject.HandleAsync(query, CancellationToken.None);
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
 
         await result.ShouldBeSuccessMatchAsync(o => o.Id == _towerHamlets.Id);
     }

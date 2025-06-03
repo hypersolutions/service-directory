@@ -1,4 +1,4 @@
-﻿using NSubstitute;
+﻿using RockHopper;
 using ServiceDirectory.Application.Data;
 using ServiceDirectory.Application.Handlers.Commands.UpdateService;
 using ServiceDirectory.Application.Shared;
@@ -10,16 +10,18 @@ using Xunit;
 
 namespace ServiceDirectory.Application.Test.Handlers.Commands.UpdateService;
 
-public class UpdateServiceCommandHandlerTests : TestBase<UpdateServiceCommandHandler>
+public class UpdateServiceCommandHandlerTests
 {
-    private readonly IApplicationRepository _repository;
+    private readonly UpdateServiceCommandHandler _handler;
     private readonly Service _discoveryHomeService;
     
     public UpdateServiceCommandHandlerTests()
     {
+        _handler = TestSubject.Create<UpdateServiceCommandHandler>();
         _discoveryHomeService = TestServices.DiscoveryHome();
-        _repository = MockFor<IApplicationRepository>();
-        _repository.Services.Returns(new List<Service>([_discoveryHomeService]).AsTestQueryable());
+        var repository = _handler.GetMock<IApplicationRepository>();
+        repository.GetProperty(r => r.Services).Returns(new List<Service>([_discoveryHomeService]).AsTestQueryable());
+        repository.Function(r => r.SaveChangesAsync(CancellationToken.None)).Returns(Task.CompletedTask);
     }
     
     [Fact]
@@ -27,7 +29,7 @@ public class UpdateServiceCommandHandlerTests : TestBase<UpdateServiceCommandHan
     {
         var command = GetUnknownUpdateServiceCommand();
 
-        var result = await Subject.HandleAsync(command, CancellationToken.None);
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
         
         await result.ShouldBeErrorMatchAsync(
             e => e is { Description: "Unable to find the service for 100.", Type: ErrorType.NotFound });
@@ -38,7 +40,7 @@ public class UpdateServiceCommandHandlerTests : TestBase<UpdateServiceCommandHan
     {
         var command = GetUpdateServiceCommand();
 
-        await Subject.HandleAsync(command, CancellationToken.None);
+        await _handler.HandleAsync(command, CancellationToken.None);
         
         _discoveryHomeService.Name.ShouldBe(command.Name);
         _discoveryHomeService.Description.ShouldBe(command.Description);
@@ -50,9 +52,9 @@ public class UpdateServiceCommandHandlerTests : TestBase<UpdateServiceCommandHan
     {
         var command = GetUpdateServiceCommand();
 
-        await Subject.HandleAsync(command, CancellationToken.None);
+        await _handler.HandleAsync(command, CancellationToken.None);
         
-        await _repository.Received().SaveChangesAsync(CancellationToken.None);
+        _handler.VerifyAll();
     }
     
     private UpdateServiceCommand GetUpdateServiceCommand() 

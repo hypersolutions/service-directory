@@ -1,4 +1,5 @@
-﻿using NSubstitute;
+﻿using RockHopper;
+using RockHopper.Mocking;
 using ServiceDirectory.Application.Clients;
 using ServiceDirectory.Application.Data;
 using ServiceDirectory.Application.Handlers.Queries.ServiceSearch;
@@ -8,27 +9,32 @@ using ServiceDirectory.Application.Test.Support.MockQueryable;
 using ServiceDirectory.Domain;
 using ServiceDirectory.Domain.Primitives;
 using Xunit;
+// ReSharper disable MethodHasAsyncOverload - test non-async too
 
 namespace ServiceDirectory.Application.Test.Handlers.Queries.ServiceSearch;
 
-public class ServiceSearchQueryHandlerTests : TestBase<ServiceSearchQueryHandler>
+public class ServiceSearchQueryHandlerTests
 {
-    private readonly IApplicationRepository _repository;
-    private readonly IPostcodeClient _postcodeClient;
+    private readonly ServiceSearchQueryHandler _handler;
+    private readonly Mock<IApplicationRepository> _repository;
+    private readonly Mock<IPostcodeClient> _postcodeClient;
 
     public ServiceSearchQueryHandlerTests()
     {
-        _repository = MockFor<IApplicationRepository>();
-        _postcodeClient = MockFor<IPostcodeClient>();
+        _handler = TestSubject.Create<ServiceSearchQueryHandler>();
+        _repository = _handler.GetMock<IApplicationRepository>();
+        _postcodeClient = _handler.GetMock<IPostcodeClient>();
     }
     
     [Fact]
     public async Task NoPostcodeFound_HandleAsync_ReturnsError()
     {
         var query = new ServiceSearchQuery("SO19 8SJ", 10, 10);
-        _postcodeClient.ResolvePostcodeLocationAsync(query.Postcode, CancellationToken.None).Returns(new Error("Postcode not found.", ErrorType.NotFound));
+        _postcodeClient
+            .Function(c => c.ResolvePostcodeLocationAsync(query.Postcode, CancellationToken.None))
+            .Returns((Result<Coordinate>)new Error("Postcode not found.", ErrorType.NotFound));
         
-        var result = await Subject.HandleAsync(query, CancellationToken.None);
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
 
         await result.ShouldBeErrorMatchAsync(e => e is { Description: "Postcode not found.", Type: ErrorType.NotFound });
     }
@@ -42,10 +48,13 @@ public class ServiceSearchQueryHandlerTests : TestBase<ServiceSearchQueryHandler
         var cityOfLondonOrganisation = TestOrganisations.CityOfLondon();
         
         var query = new ServiceSearchQuery("E1 5LQ", 5, 5);
-        _postcodeClient.ResolvePostcodeLocationAsync(query.Postcode, CancellationToken.None).Returns(new Coordinate(51.518578, 0.06895));
-        _repository.Organisations.Returns(new List<Organisation>([towerHamletsOrganisation, cityOfLondonOrganisation]).AsTestQueryable());
+        _postcodeClient
+            .Function(c => c.ResolvePostcodeLocationAsync(query.Postcode, CancellationToken.None))
+            .Returns((Result<Coordinate>)new Coordinate(51.518578, 0.06895));
+        _repository.GetProperty(r => r.Organisations)
+            .Returns(new List<Organisation>([towerHamletsOrganisation, cityOfLondonOrganisation]).AsTestQueryable());
         
-        var result = await Subject.HandleAsync(query, CancellationToken.None);
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
 
         result.ShouldBeSuccessMatch(r => r.Any(s => s.Id == parentsCentreService.Id));
         result.ShouldBeSuccessMatch(r => r.Any(s => s.Id == southWestJohnSmithService.Id));
@@ -61,10 +70,13 @@ public class ServiceSearchQueryHandlerTests : TestBase<ServiceSearchQueryHandler
         var cityOfLondonOrganisation = TestOrganisations.CityOfLondon();
         
         var query = new ServiceSearchQuery("E1 5LQ", 10, 5);
-        _postcodeClient.ResolvePostcodeLocationAsync(query.Postcode, CancellationToken.None).Returns(new Coordinate(51.518578, 0.06895));
-        _repository.Organisations.Returns(new List<Organisation>([towerHamletsOrganisation, cityOfLondonOrganisation]).AsTestQueryable());
+        _postcodeClient
+            .Function(c => c.ResolvePostcodeLocationAsync(query.Postcode, CancellationToken.None))
+            .Returns((Result<Coordinate>)new Coordinate(51.518578, 0.06895));
+        _repository.GetProperty(r => r.Organisations)
+            .Returns(new List<Organisation>([towerHamletsOrganisation, cityOfLondonOrganisation]).AsTestQueryable());
         
-        var result = await Subject.HandleAsync(query, CancellationToken.None);
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
         
         result.ShouldBeSuccessMatch(r => r.Any(s => s.Id == parentsCentreService.Id));
         result.ShouldBeSuccessMatch(r => r.Any(s => s.Id == specialistMidwifeService.Id));
@@ -80,10 +92,13 @@ public class ServiceSearchQueryHandlerTests : TestBase<ServiceSearchQueryHandler
         var cityOfLondonOrganisation = TestOrganisations.CityOfLondon();
         
         var query = new ServiceSearchQuery("E1 5LQ", 10, 2);
-        _postcodeClient.ResolvePostcodeLocationAsync(query.Postcode, CancellationToken.None).Returns(new Coordinate(51.518578, 0.06895));
-        _repository.Organisations.Returns(new List<Organisation>([towerHamletsOrganisation, cityOfLondonOrganisation]).AsTestQueryable());
+        _postcodeClient
+            .Function(c => c.ResolvePostcodeLocationAsync(query.Postcode, CancellationToken.None))
+            .Returns((Result<Coordinate>)new Coordinate(51.518578, 0.06895));
+        _repository.GetProperty(r => r.Organisations)
+            .Returns(new List<Organisation>([towerHamletsOrganisation, cityOfLondonOrganisation]).AsTestQueryable());
         
-        var result = await Subject.HandleAsync(query, CancellationToken.None);
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
 
         result.ShouldBeSuccessMatch(r => r.Any(s => s.Id == parentsCentreService.Id));
         result.ShouldBeSuccessMatch(r => r.Any(s => s.Id == southWestJohnSmithService.Id));

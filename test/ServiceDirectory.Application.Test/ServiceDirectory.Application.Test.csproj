@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <ItemGroup>
         <PackageReference Include="Microsoft.NET.Test.Sdk" />
-        <PackageReference Include="NSubstitute" />
+        <PackageReference Include="RockHopper" />
         <PackageReference Include="Shouldly" />
         <PackageReference Include="xunit" />
         <PackageReference Include="xunit.runner.visualstudio">

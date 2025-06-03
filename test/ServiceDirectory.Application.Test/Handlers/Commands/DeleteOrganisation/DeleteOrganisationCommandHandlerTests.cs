@@ -1,4 +1,4 @@
-﻿using NSubstitute;
+﻿using RockHopper;
 using ServiceDirectory.Application.Data;
 using ServiceDirectory.Application.Handlers.Commands.DeleteOrganisation;
 using ServiceDirectory.Application.Shared;
@@ -10,16 +10,18 @@ using Xunit;
 
 namespace ServiceDirectory.Application.Test.Handlers.Commands.DeleteOrganisation;
 
-public class DeleteOrganisationCommandHandlerTests : TestBase<DeleteOrganisationCommandHandler>
+public class DeleteOrganisationCommandHandlerTests
 {
-    private readonly IApplicationRepository _repository;
+    private readonly DeleteOrganisationCommandHandler _handler;
     private readonly Organisation _towerHamlets;
     
     public DeleteOrganisationCommandHandlerTests()
     {
+        _handler = TestSubject.Create<DeleteOrganisationCommandHandler>();
         _towerHamlets = TestOrganisations.TowerHamlets();
-        _repository = MockFor<IApplicationRepository>();
-        _repository.Organisations.Returns(new List<Organisation>([_towerHamlets]).AsTestQueryable());
+        var repository = _handler.GetMock<IApplicationRepository>();
+        repository.GetProperty(r => r.Organisations).Returns(new List<Organisation>([_towerHamlets]).AsTestQueryable());
+        repository.Function(r => r.SaveChangesAsync(CancellationToken.None)).Returns(Task.CompletedTask);
     }
     
     [Fact]
@@ -27,7 +29,7 @@ public class DeleteOrganisationCommandHandlerTests : TestBase<DeleteOrganisation
     {
         var command = new DeleteOrganisationCommand(100);
         
-        var result = await Subject.HandleAsync(command, CancellationToken.None);
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         await result.ShouldBeErrorMatchAsync(
             e => e is { Description: "Unable to find the organisation for 100.", Type: ErrorType.NotFound });
@@ -38,7 +40,7 @@ public class DeleteOrganisationCommandHandlerTests : TestBase<DeleteOrganisation
     {
         var command = new DeleteOrganisationCommand(_towerHamlets.Id);
         
-        await Subject.HandleAsync(command, CancellationToken.None);
+        await _handler.HandleAsync(command, CancellationToken.None);
 
         _towerHamlets.Status.ShouldBe(StatusType.Inactive);
     }
@@ -48,8 +50,8 @@ public class DeleteOrganisationCommandHandlerTests : TestBase<DeleteOrganisation
     {
         var command = new DeleteOrganisationCommand(_towerHamlets.Id);
         
-        await Subject.HandleAsync(command, CancellationToken.None);
+        await _handler.HandleAsync(command, CancellationToken.None);
 
-        await _repository.Received().SaveChangesAsync(CancellationToken.None);
+        _handler.VerifyAll();
     }
 }

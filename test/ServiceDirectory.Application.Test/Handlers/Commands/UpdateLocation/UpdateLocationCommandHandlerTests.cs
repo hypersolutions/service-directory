@@ -1,4 +1,5 @@
-﻿using NSubstitute;
+﻿using RockHopper;
+using RockHopper.Mocking;
 using ServiceDirectory.Application.Clients;
 using ServiceDirectory.Application.Data;
 using ServiceDirectory.Application.Handlers.Commands.UpdateLocation;
@@ -12,27 +13,31 @@ using Xunit;
 
 namespace ServiceDirectory.Application.Test.Handlers.Commands.UpdateLocation;
 
-public class UpdateLocationCommandHandlerTests : TestBase<UpdateLocationCommandHandler>
+public class UpdateLocationCommandHandlerTests
 {
-    private readonly IApplicationRepository _repository;
-    private readonly IPostcodeClient _postcodeClient;
+    private readonly UpdateLocationCommandHandler _handler;
+    private readonly Mock<IPostcodeClient> _postcodeClient;
     private readonly Location _discoveryHomeLocation;
     
     public UpdateLocationCommandHandlerTests()
     {
+        _handler = TestSubject.Create<UpdateLocationCommandHandler>();
         _discoveryHomeLocation = TestLocations.DiscoveryHome();
-        _repository = MockFor<IApplicationRepository>();
-        _repository.Locations.Returns(new List<Location>([_discoveryHomeLocation]).AsTestQueryable());
-        _postcodeClient = MockFor<IPostcodeClient>();
+        var repository = _handler.GetMock<IApplicationRepository>();
+        repository.GetProperty(r => r.Locations).Returns(new List<Location>([_discoveryHomeLocation]).AsTestQueryable());
+        repository.Function(r => r.SaveChangesAsync(CancellationToken.None)).Returns(Task.CompletedTask);
+        _postcodeClient = _handler.GetMock<IPostcodeClient>();
     }
     
     [Fact]
     public async Task NoPostcodeFound_HandleAsync_ReturnsError()
     {
         var command = GetUpdateLocationCommand();
-        _postcodeClient.ResolvePostcodeLocationAsync(command.Postcode, CancellationToken.None).Returns(new Error("Postcode not found.", ErrorType.NotFound));
+        _postcodeClient
+            .Function(c => c.ResolvePostcodeLocationAsync(command.Postcode, CancellationToken.None))
+            .Returns((Result<Coordinate>)new Error("Postcode not found.", ErrorType.NotFound));
         
-        var result = await Subject.HandleAsync(command, CancellationToken.None);
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         await result.ShouldBeErrorMatchAsync(e => e is { Description: "Postcode not found.", Type: ErrorType.NotFound });
     }
@@ -41,8 +46,11 @@ public class UpdateLocationCommandHandlerTests : TestBase<UpdateLocationCommandH
     public async Task UnknownLocation_HandleAsync_ThrowsException()
     {
         var command = GetUnknownUpdateLocationCommand();
-
-        var result = await Subject.HandleAsync(command, CancellationToken.None);
+        _postcodeClient
+            .Function(c => c.ResolvePostcodeLocationAsync(command.Postcode, CancellationToken.None))
+            .Returns((Result<Coordinate>)new Coordinate(_discoveryHomeLocation.Latitude, _discoveryHomeLocation.Longitude));
+        
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
         
         await result.ShouldBeErrorMatchAsync(
             e => e is { Description: "Unable to find the location for 100.", Type: ErrorType.NotFound });
@@ -52,9 +60,11 @@ public class UpdateLocationCommandHandlerTests : TestBase<UpdateLocationCommandH
     public async Task ValidLocation_HandleAsync_UpdatesLocationDetails()
     {
         var command = GetUpdateLocationCommand();
-        _postcodeClient.ResolvePostcodeLocationAsync(command.Postcode, CancellationToken.None).Returns(new Coordinate(_discoveryHomeLocation.Latitude, _discoveryHomeLocation.Longitude));
-
-        await Subject.HandleAsync(command, CancellationToken.None);
+        _postcodeClient
+            .Function(c => c.ResolvePostcodeLocationAsync(command.Postcode, CancellationToken.None))
+            .Returns((Result<Coordinate>)new Coordinate(_discoveryHomeLocation.Latitude, _discoveryHomeLocation.Longitude));
+        
+        await _handler.HandleAsync(command, CancellationToken.None);
 
         _discoveryHomeLocation.AddressLine1.ShouldBe(command.AddressLine1);
         _discoveryHomeLocation.AddressLine2.ShouldBe(command.AddressLine2);
@@ -67,11 +77,13 @@ public class UpdateLocationCommandHandlerTests : TestBase<UpdateLocationCommandH
     public async Task ValidLocation_HandleAsync_SavesRepositoryChanges()
     {
         var command = GetUpdateLocationCommand();
-        _postcodeClient.ResolvePostcodeLocationAsync(command.Postcode, CancellationToken.None).Returns(new Coordinate(_discoveryHomeLocation.Latitude, _discoveryHomeLocation.Longitude));
-
-        await Subject.HandleAsync(command, CancellationToken.None);
+        _postcodeClient
+            .Function(c => c.ResolvePostcodeLocationAsync(command.Postcode, CancellationToken.None))
+            .Returns((Result<Coordinate>)new Coordinate(_discoveryHomeLocation.Latitude, _discoveryHomeLocation.Longitude));
         
-        await _repository.Received().SaveChangesAsync(CancellationToken.None);
+        await _handler.HandleAsync(command, CancellationToken.None);
+        
+        _handler.VerifyAll();
     }
     
     private UpdateLocationCommand GetUpdateLocationCommand() => new(

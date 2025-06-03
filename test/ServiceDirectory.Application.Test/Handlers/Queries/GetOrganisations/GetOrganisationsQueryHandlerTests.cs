@@ -1,4 +1,5 @@
-﻿using NSubstitute;
+﻿using RockHopper;
+using RockHopper.Mocking;
 using ServiceDirectory.Application.Data;
 using ServiceDirectory.Application.Handlers.Queries;
 using ServiceDirectory.Application.Handlers.Queries.GetOrganisations;
@@ -9,13 +10,15 @@ using Xunit;
 
 namespace ServiceDirectory.Application.Test.Handlers.Queries.GetOrganisations;
 
-public class GetOrganisationsQueryHandlerTests : TestBase<GetOrganisationsQueryHandler>
+public class GetOrganisationsQueryHandlerTests
 {
-    private readonly IApplicationRepository _repository;
+    private readonly GetOrganisationsQueryHandler _handler;
+    private readonly Mock<IApplicationRepository> _repository;
     
     public GetOrganisationsQueryHandlerTests()
     {
-        _repository = MockFor<IApplicationRepository>();
+        _handler = TestSubject.Create<GetOrganisationsQueryHandler>();
+        _repository = _handler.GetMock<IApplicationRepository>();
     }
     
     [Fact]
@@ -23,9 +26,9 @@ public class GetOrganisationsQueryHandlerTests : TestBase<GetOrganisationsQueryH
     {
         var towerHamlets = TestOrganisations.TowerHamlets();
         var cityOfLondon = TestOrganisations.CityOfLondon();
-        _repository.Organisations.Returns(new List<Organisation>([towerHamlets, cityOfLondon]).AsTestQueryable());
+        _repository.GetProperty(r => r.Organisations).Returns(new List<Organisation>([towerHamlets, cityOfLondon]).AsTestQueryable());
         
-        var result = await Subject.HandleAsync(new NoopQuery(), CancellationToken.None);
+        var result = await _handler.HandleAsync(new NoopQuery(), CancellationToken.None);
 
         await result.ShouldBeSuccessMatchAsync(o => o.Any(x => x.Id == towerHamlets.Id && x.Services.Any()));
         await result.ShouldBeSuccessMatchAsync(o => o.Any(x => x.Id == cityOfLondon.Id && x.Services.Any()));
